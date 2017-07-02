@@ -41,7 +41,7 @@ cv2gpumodule = Extension('cv2gpu',
                   define_macros = [('MAJOR_VERSION', '1'),
                                    ('MINOR_VERSION', '0')],
                   sources = [os.path.join('src', 'face_detector.cpp'), os.path.join('src', 'cv2gpu.cpp')],
-                  include_dirs = opencv_deps['include_dirs'],
+                  include_dirs = opencv_deps['include_dirs'] + ['/usr/local/lib/python2.7/dist-packages/numpy/core/include/numpy'],
                   libraries = opencv_deps['libraries'],
                   library_dirs = opencv_deps['library_dirs'],
                   extra_compile_args = ['-std=c++11'])

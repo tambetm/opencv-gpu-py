@@ -12,6 +12,8 @@
 #include <Python.h>
 
 #include "face_detector.hpp"
+#include <ndarraytypes.h>
+#include <__multiarray_api.h>
 
 static FaceDetector detector;
 static bool init = false;
@@ -58,13 +60,36 @@ static PyObject* init_cpu_detector(PyObject* self, PyObject* args)
 
 static PyObject* find_faces(PyObject* self, PyObject* args)
 {
-  const char* image_path;
+  PyObject* image;
   if (init)
   {
-    if (PyArg_ParseTuple(args, "s", &image_path))
+    if (PyArg_ParseTuple(args, "O", &image))
     {
+      PyObject *ao = PyObject_GetAttrString(image, "__array_struct__");
+      PyObject *retval;
+      
+      if ((ao == NULL) || !PyCObject_Check(ao)) {
+        PyErr_SetString(PyExc_TypeError, "object does not have array interface");
+        return NULL;
+      }
+
+      PyArrayInterface *pai = (PyArrayInterface*)PyCObject_AsVoidPtr(ao);
+      if (pai->two != 2) {
+        PyErr_SetString(PyExc_TypeError, "object does not have array interface");
+        Py_DECREF(ao);
+        return NULL;
+      }
+      
+      // Construct data with header info and image data 
+      char *buffer = (char*)pai->data; // The address of image data
+      int width = pai->shape[1];       // image width
+      int height = pai->shape[0];      // image height
+      int size = pai->strides[0] * pai->shape[0]; // image size = stride * height
+      cv::Mat mat(height, width, CV_8UC1, buffer);
+      Py_DECREF(ao);
+
       std::vector<cv::Rect> face_rects;
-      detector.Detect(image_path, face_rects);
+      detector.Detect(mat, face_rects);
       if (face_rects.empty())
       {
         // No faces

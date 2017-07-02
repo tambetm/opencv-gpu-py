@@ -34,10 +34,9 @@ void FaceDetector::Init(const std::string& cascade_file, bool gpu)
   gpu_ = gpu;
 }
 
-bool FaceDetector::Detect(const char* image_file,
+bool FaceDetector::Detect(const cv::Mat& frame,
                           std::vector<cv::Rect>& face_rects)
 {
-  cv::Mat frame = cv::imread(image_file, 0);
   cv::equalizeHist(frame, frame);
   static std::once_flag load_flag;
   if (cascade_file_.empty())
@@ -65,6 +64,7 @@ bool FaceDetector::Detect(const char* image_file,
     #else
       static
       auto cascade_gpu_ptr = cv::cuda::CascadeClassifier::create(cascade_file_);
+      cascade_gpu_ptr->setMinNeighbors(5);
       cv::cuda::GpuMat frame_gpu(frame);
       cv::cuda::GpuMat faces_gpu;
       cascade_gpu_ptr->detectMultiScale(frame_gpu, faces_gpu);

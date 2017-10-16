@@ -12,8 +12,8 @@
 #include <Python.h>
 
 #include "face_detector.hpp"
-#include <ndarraytypes.h>
-#include <__multiarray_api.h>
+#include <numpy/ndarraytypes.h>
+#include <numpy/__multiarray_api.h>
 
 static FaceDetector detector;
 static bool init = false;
@@ -66,7 +66,6 @@ static PyObject* find_faces(PyObject* self, PyObject* args)
     if (PyArg_ParseTuple(args, "O", &image))
     {
       PyObject *ao = PyObject_GetAttrString(image, "__array_struct__");
-      PyObject *retval;
       
       if ((ao == NULL) || !PyCObject_Check(ao)) {
         PyErr_SetString(PyExc_TypeError, "object does not have array interface");
